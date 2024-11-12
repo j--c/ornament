@@ -53,7 +53,7 @@ class TestHelper(unittest.TestCase):
         n = 1073741828
 
         # When I call pack_l on the long
-        # and call unpack_i on the packed long
+        # and call unpack_l on the packed long
         packed_n = pack_l(n)
         unpacked_n = unpack_l(packed_n)
 
