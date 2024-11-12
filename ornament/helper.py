@@ -54,7 +54,7 @@ def pack_l(n: int) -> bytes:
     if n < LNG_MAX:
         return struct.pack(pack_format, n)
     else:
-        val_msg = f'write_l requires value less than or equal to {LNG_MAX}'
+        val_msg = f'pack_l requires value less than or equal to {LNG_MAX}'
         raise ValueError(val_msg)
 
 
