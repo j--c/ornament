@@ -33,6 +33,15 @@ def unpack_s(data: bytes, encoding: str = None) -> str:
     return s_encoded.decode(encoding)
 
 
+# Whole Numbers ----------------------------------
+def pack_n(n: int) -> bytes:
+
+    if n < INT_MAX:
+        return pack_i(n)
+    else:
+        return pack_l(n)
+
+
 # Integers ----------------------------------------
 def pack_i(n: int) -> bytes:
     pack_format = '@i'
