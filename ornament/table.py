@@ -1,4 +1,7 @@
 from ornament.storage import FileStorage
+from ornament.helper import pack_s
+from ornament.helper import pack_n
+from ornament.helper import pack_b
 from os import SEEK_END
 
 
@@ -40,13 +43,46 @@ class PersonTable(object):
         self._storage = FileStorage(storage_path)
         self._index = TableIndex()
 
-    def add_row(self, person: dict) -> None:
-        row_length = (
-            len(person['name']) + len(person['address']),
-            len(person['telephone'])
-        )
-        self._storage.write_i(row_length, 0, SEEK_END)
-        self._storage.write_s(person['name'], 0, SEEK_END)
+    def add_row(self, row: dict) -> None:
+        packed_row = self._pack_row(row)
+        self._write_row(packed_row)
 
     def close(self) -> None:
         self._storage.close()
+
+    def _pack_row(self, row: dict) -> dict:
+        row_len = 0
+        packed_row = {}
+        for k, v in row.items():
+            packed_row[k] = self._get_packed_value(v)
+            packed_row[f'{k}_len'] = self._get_packed_value(len(packed_row[k]))
+            row_len += len(packed_row[k])
+            row_len += len(packed_row[f'{k}_len'])
+
+        packed_row['deleted'] = self._get_packed_value(False)
+        packed_row['row_len'] = self._get_packed_value(row_len)
+        return packed_row
+
+    def _write_row(self, packed_row: dict) -> None:
+        self._storage.write(packed_row['deleted'], 0, SEEK_END)
+        self._storage.write(packed_row['row_len'], 0, SEEK_END)
+
+        self._storage.write(packed_row['name_len'], 0, SEEK_END)
+        self._storage.write(packed_row['name'], 0, SEEK_END)
+
+        self._storage.write(packed_row['address_len'], 0, SEEK_END)
+        self._storage.write(packed_row['address'], 0, SEEK_END)
+
+        self._storage.write(packed_row['telephone_len'], 0, SEEK_END)
+        self._storage.write(packed_row['telephone'], 0, SEEK_END)
+
+    def _get_packed_value(self, val) -> bytes:
+        val_type = type(val)
+        return_bytes = None
+        if val_type == int:
+            return_bytes = pack_n(val)
+        elif val_type == str:
+            return_bytes = pack_s(val)
+        elif val_type == bool:
+            return_bytes = pack_b(val)
+        return return_bytes
